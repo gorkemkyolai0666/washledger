@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: washledger
+      POSTGRES_PASSWORD: washledger123
+      POSTGRES_DB: washledger
+    ports:
+      - '5449:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U washledger']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - '4009:4009'
+    environment:
+      DATABASE_URL: postgresql://washledger:washledger123@postgres:5432/washledger?schema=public
+      JWT_SECRET: washledger-dev-secret
+      FRONTEND_URL: http://localhost:3009
+      PORT: 4009
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npm run deploy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - '3009:3009'
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4009/api
+    depends_on:
+      - backend

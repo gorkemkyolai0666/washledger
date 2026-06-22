@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
+    --primary: 187 100% 42%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 54 100% 50%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 0 85% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 35%;
+    --success-foreground: 0 0% 100%;
+    --warning: 54 100% 50%;
+    --warning-foreground: 0 0% 4%;
+    --border: 0 0% 8%;
+    --input: 0 0% 8%;
+    --ring: 187 100% 42%;
+    --radius: 0px;
+  }
+
+  .dark {
+    --background: 0 0% 6%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 187 100% 50%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 54 100% 50%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 50% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 54 100% 50%;
+    --warning-foreground: 0 0% 4%;
+    --border: 0 0% 96%;
+    --input: 0 0% 96%;
+    --ring: 187 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+  h1, h2, h3, .font-display {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .brutal-card {
+    @apply border-2 border-foreground bg-card shadow-[4px_4px_0_0_hsl(var(--foreground))];
+  }
+  .brutal-btn {
+    @apply border-2 border-foreground font-bold uppercase tracking-wider shadow-[3px_3px_0_0_hsl(var(--foreground))] transition-transform hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none;
+  }
+  .brutal-divider {
+    @apply h-0.5 w-full bg-foreground;
+  }
+  .machine-cell {
+    @apply border-2 border-foreground p-3 font-mono text-sm font-bold uppercase;
+  }
+  .machine-cell-operational {
+    @apply bg-success/15 text-success;
+  }
+  .machine-cell-down {
+    @apply bg-destructive/15 text-destructive;
+  }
+  .machine-cell-maintenance {
+    @apply bg-warning/20 text-warning-foreground;
+  }
+}

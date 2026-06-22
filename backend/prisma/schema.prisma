@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  owner
+  manager
+  attendant
+}
+
+enum MachineType {
+  washer
+  dryer
+  combo
+  fold_station
+}
+
+enum PaymentType {
+  coin
+  card
+  both
+}
+
+enum MachineStatus {
+  operational
+  down
+  maintenance
+  retired
+}
+
+enum CollectionStatus {
+  recorded
+  verified
+  disputed
+}
+
+enum RepairPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum RepairStatus {
+  open
+  in_progress
+  completed
+  cancelled
+}
+
+enum ServiceCategory {
+  vent_cleaning
+  belt_replacement
+  drum_service
+  motor_repair
+  plumbing
+  electrical
+  other
+}
+
+enum ServiceStatus {
+  scheduled
+  in_progress
+  completed
+  overdue
+}
+
+enum PricingCategory {
+  wash_small
+  wash_large
+  wash_extra_large
+  dry_low
+  dry_high
+  combo
+  other
+}
+
+enum PricingStatus {
+  active
+  upcoming
+  archived
+}
+
+model Laundromat {
+  id            String   @id @default(uuid())
+  name          String
+  phone         String?
+  address       String?
+  city          String?
+  state         String?
+  zipCode       String?  @map("zip_code")
+  totalMachines Int      @default(48) @map("total_machines")
+  timezone      String   @default("America/Chicago")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  users            User[]
+  machines         Machine[]
+  collections      Collection[]
+  repairOrders     RepairOrder[]
+  serviceSchedules ServiceSchedule[]
+  pricingTiers     PricingTier[]
+
+  @@map("laundromats")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  role         UserRole @default(owner)
+  laundromatId String   @map("laundromat_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  laundromat Laundromat @relation(fields: [laundromatId], references: [id], onDelete: Cascade)
+
+  @@map("users")
+}
+
+model Machine {
+  id          String        @id @default(uuid())
+  laundromatId String       @map("laundromat_id")
+  number      String
+  zone        String
+  machineType MachineType   @default(washer) @map("machine_type")
+  capacityLbs Int           @default(20) @map("capacity_lbs")
+  paymentType PaymentType   @default(both) @map("payment_type")
+  brand       String?
+  status      MachineStatus @default(operational)
+  notes       String?
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  laundromat   Laundromat    @relation(fields: [laundromatId], references: [id], onDelete: Cascade)
+  collections  Collection[]
+  repairOrders RepairOrder[]
+
+  @@unique([laundromatId, number])
+  @@index([laundromatId, status])
+  @@map("machines")
+}
+
+model Collection {
+  id           String           @id @default(uuid())
+  laundromatId String           @map("laundromat_id")
+  machineId    String           @map("machine_id")
+  collectedAt  DateTime         @map("collected_at")
+  coinAmount   Float            @default(0) @map("coin_amount")
+  cardAmount   Float            @default(0) @map("card_amount")
+  cycleCount   Int              @default(0) @map("cycle_count")
+  status       CollectionStatus @default(recorded)
+  notes        String?
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  laundromat Laundromat @relation(fields: [laundromatId], references: [id], onDelete: Cascade)
+  machine    Machine    @relation(fields: [machineId], references: [id], onDelete: Cascade)
+
+  @@index([laundromatId, collectedAt])
+  @@index([laundromatId, status])
+  @@map("collections")
+}
+
+model RepairOrder {
+  id           String         @id @default(uuid())
+  laundromatId String         @map("laundromat_id")
+  machineId    String         @map("machine_id")
+  title        String
+  description  String?
+  reportedAt   DateTime       @map("reported_at")
+  completedAt  DateTime?      @map("completed_at")
+  priority     RepairPriority @default(medium)
+  status       RepairStatus   @default(open)
+  cost         Float?
+  notes        String?
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  laundromat Laundromat @relation(fields: [laundromatId], references: [id], onDelete: Cascade)
+  machine    Machine    @relation(fields: [machineId], references: [id], onDelete: Cascade)
+
+  @@index([laundromatId, status])
+  @@index([laundromatId, priority])
+  @@map("repair_orders")
+}
+
+model ServiceSchedule {
+  id           String          @id @default(uuid())
+  laundromatId String          @map("laundromat_id")
+  title        String
+  description  String?
+  category     ServiceCategory @default(other)
+  zone         String?
+  scheduledAt  DateTime        @map("scheduled_at")
+  status       ServiceStatus   @default(scheduled)
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  laundromat Laundromat @relation(fields: [laundromatId], references: [id], onDelete: Cascade)
+
+  @@index([laundromatId, scheduledAt])
+  @@map("service_schedules")
+}
+
+model PricingTier {
+  id              String          @id @default(uuid())
+  laundromatId    String          @map("laundromat_id")
+  title           String
+  tierCategory    PricingCategory @default(wash_small) @map("tier_category")
+  status          PricingStatus   @default(active)
+  basePrice       Float           @map("base_price")
+  priceMultiplier Float           @default(1.0) @map("price_multiplier")
+  notes           String?
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  laundromat Laundromat @relation(fields: [laundromatId], references: [id], onDelete: Cascade)
+
+  @@index([laundromatId, tierCategory])
+  @@map("pricing_tiers")
+}
